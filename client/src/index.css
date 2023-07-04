@@ -1,0 +1,29 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@font-face {
+    font-family: 'Imperial Script';
+    src: url('../src/fonts/ImperialScript-Regular.ttf') format('truetype');
+    /* Outros formatos de fonte podem ser adicionados aqui, se necessário */
+    font-weight: normal;
+    font-style: normal;
+  }
+
+main{
+    flex:1;
+    margin-left: 30px;
+}
+
+main ul{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    list-style: none;
+}
+
+@media(max-width:600px){
+    main ul{
+        grid-template-columns: 1fr;
+    }
+}
