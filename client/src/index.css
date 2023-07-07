@@ -1,0 +1,45 @@
+@font-face {
+    font-family: imperialscript;
+    src: url(./fonts/ImperialScript-Regular.ttf);
+}
+
+@font-face {
+    font-family: Roboto;
+    src: url(./fonts/Roboto-Regular.ttf);
+    font-weight: 100;
+}
+
+@font-face {
+    font-family: Roboto;
+    src: url(./fonts/Roboto-Light.ttf);
+    font-weight: lighter;
+}
+
+@font-face {
+    font-family: Roboto;
+    src: url(./fonts/Roboto-Black.ttf);
+    font-weight: bolder;
+}
+
+
+main{
+    flex:1;
+    margin-left: 30px;
+}
+
+main ul{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    list-style: none;
+}
+
+@media(max-width:600px){
+    main ul{
+        grid-template-columns: 1fr;
+    }
+}
+
+body{
+    margin:0px;
+}
