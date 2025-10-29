@@ -1,0 +1,26 @@
+
+.fields-container{
+    display: flex;
+    flex-direction: column;
+}
+
+.buttons-container{
+    display: flex;
+    flex-direction:column;
+}
+
+form{
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.field-matricula{
+    display: flex;
+    margin-bottom: 16px;
+}
+
+.forgotPassword{
+    align-self: flex-end;
+    color: #2C8AED;
+}

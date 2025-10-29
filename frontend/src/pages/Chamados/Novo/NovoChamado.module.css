@@ -1,0 +1,47 @@
+.novo-chamado__card {
+  padding: 24px;
+  margin: 0 auto;
+}
+
+.novo-chamado__subtitle {
+  margin-bottom: 16px;
+}
+
+.novo-chamado__form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 30px;
+}
+
+.novo-chamado__textarea {
+  width: 100%;
+  padding: 12px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  resize: vertical;
+  font-family: inherit;
+  background: #fff;
+  color: #000;
+}
+
+.novo-chamado__select-group {
+  display: flex;
+  gap: 16px;
+}
+
+.novo-chamado__select-item {
+  flex: 1;
+}
+
+.novo-chamado__button-box {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.novo-chamado__button-enviar {
+  padding: 15px 40px;
+  border-radius: 5px;
+}
