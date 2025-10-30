@@ -1,0 +1,181 @@
+/* ===== BLOCO PRINCIPAL ===== */
+.detalhes {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  padding: 16px;
+}
+
+/* ===== MAIN AREA ===== */
+.detalhes__main {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  gap: 16px;
+}
+
+/* ===== LOADING ===== */
+.detalhes__loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ===== BREADCRUMB ===== */
+.detalhes__breadcrumb {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.detalhes__breadcrumb-gray {
+  color: #6f7e93;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.detalhes__breadcrumb-link:hover {
+  color: #1976d2;
+  cursor: pointer;
+}
+
+/* ===== HEADER ===== */
+.detalhes__header {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.detalhes__header-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detalhes__header-info__subtitle {
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* ===== CARDS ===== */
+.detalhes__card {
+  padding: 16px;
+  flex-grow: 1;
+}
+
+.detalhes__title {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+/* ===== INFO SECTION ===== */
+.detalhes__info {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+}
+
+.detalhes__info-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex-grow: 1;
+}
+
+.detalhes__info-text {
+  font-weight: bold;
+}
+
+.detalhes__info-title {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.detalhes__info-title-bold {
+  font-weight: bold;
+}
+/* ===== DESCRIÇÃO ===== */
+.detalhes__descricao {
+  margin-top: 16px;
+}
+
+/* ===== NOTAS ===== */
+.detalhes__notas {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detalhes__nota {
+  padding: 12px;
+}
+
+/* ===== SIDEBAR ===== */
+.detalhes__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 400px;
+}
+
+/* ===== AÇÕES ===== */
+.detalhes__acoes {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.detalhes__acoes-title {
+  font-weight: bold;
+}
+
+/* ===== NOTA CARD ===== */
+.detalhes__nota-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.detalhes__nota-card-title {
+  font-weight: bold;
+}
+
+/* ===== TEXTAREA ===== */
+.detalhes__textarea {
+  color: rgba(0, 0, 0, 0.87);
+  width: 100%;
+  font-size: 1rem;
+  font-family: "Roboto", sans-serif;
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.23);
+  background-color: #fff;
+  box-sizing: border-box;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  resize: none;
+}
+
+.detalhes__textarea:focus {
+  border: 1px solid #1976d2;
+  box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+.detalhes__textarea:blur {
+  border: 1px solid rgba(0, 0, 0, 0.23);
+  box-shadow: none;
+}
+
+.detalhes__header-meta{
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+}
+

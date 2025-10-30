@@ -30,6 +30,10 @@ export default function ListagemChamados() {
   const [statusOptions, setStatusOptions] = useState([]);
   const [prioridadeOptions, setPrioridadeOptions] = useState([]);
   const [atribuidoOptions, setAtribuidoOptions] = useState([]);
+  const statusMap = statusOptions.reduce((acc, s) => {
+    acc[String(s).toLowerCase()] = s;
+    return acc;
+  }, {});
   // --- Função para normalizar os dados
   function normalizarChamado(obj) {
     const camposDesejados = [
@@ -205,7 +209,9 @@ export default function ListagemChamados() {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 label="Status"
                 renderValue={(selected) =>
-                  selected.length === 0 ? "Selecione" : selected.join(", ")
+                  selected.length === 0
+                    ? "Selecione"
+                    : selected.map((s) => statusMap[s]).join(", ")
                 }
               >
                 {statusOptions.map((status) => (
@@ -228,7 +234,9 @@ export default function ListagemChamados() {
                 onChange={(e) => setPrioridadeFilter(e.target.value)}
                 label="Prioridade"
                 renderValue={(selected) =>
-                  selected.length === 0 ? "Selecione" : selected.join(", ")
+                  selected.length === 0
+                    ? "Selecione"
+                    : selected.map((s) => statusMap[s]).join(", ")
                 }
               >
                 {prioridadeOptions.map((prioridade) => (
@@ -254,7 +262,9 @@ export default function ListagemChamados() {
                 onChange={(e) => setAtribuidoFilter(e.target.value)}
                 label="Atribuído a"
                 renderValue={(selected) =>
-                  selected.length === 0 ? "Selecione" : selected.join(", ")
+                  selected.length === 0
+                    ? "Selecione"
+                    : selected.map((s) => statusMap[s]).join(", ")
                 }
               >
                 {atribuidoOptions.map((user) => (
