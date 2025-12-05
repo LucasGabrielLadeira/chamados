@@ -21,139 +21,125 @@ import { useEffect, useState } from "react";
 
 export default function ListagemChamados() {
   const navigate = useNavigate();
-  const [chamadosOriginais, setChamadosOriginais] = useState([]); // 🔹 Armazena todos
-  const [chamados, setChamados] = useState([]); // 🔹 Armazena os filtrados
-  const [searchValue, setSearchValue] = useState("");
-  const [statusFilter, setStatusFilter] = useState([]);
-  const [prioridadeFilter, setPrioridadeFilter] = useState([]);
-  const [atribuidoFilter, setAtribuidoFilter] = useState([]);
-  const [statusOptions, setStatusOptions] = useState([]);
-  const [prioridadeOptions, setPrioridadeOptions] = useState([]);
-  const [atribuidoOptions, setAtribuidoOptions] = useState([]);
-  const statusMap = statusOptions.reduce((acc, s) => {
-    acc[String(s).toLowerCase()] = s;
-    return acc;
-  }, {});
-  // --- Função para normalizar os dados
+  const [chamados, setChamados] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+
+  const [opcoesStatus, setOpcoesStatus] = useState([]);
+  const [opcoesPrioridade, setOpcoesPrioridade] = useState([]);
+  const [opcoesAtribuido, setOpcoesAtribuido] = useState([]);
+
+  const [filtroBusca, setFiltroBusca] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState([]);
+  const [filtroPrioridade, setFiltroPrioridade] = useState([]);
+  const [filtroAtribuido, setFiltroAtribuido] = useState([]);
+
+  const [chamadosFiltrados, setChamadosFiltrados] = useState([]);
+
   function normalizarChamado(obj) {
     const camposDesejados = [
       "Código",
       "Título",
       "Descrição",
-      "Tipo do Problema",
       "Status",
+      "Substatus",
       "Técnico Atribuído",
-      "Prioridade",
       "Data Abertura",
       "Requisitante",
     ];
 
     const filtrado = {};
+
     for (const key of camposDesejados) {
       if (obj.hasOwnProperty(key)) {
+        // Converter "tecnico_matricula" -> "Tecnico Matricula"
         const label = key
           .split("_")
-          .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+          .map((palavra) => palavra.charAt(0).toUpperCase() + palavra.slice(1))
           .join(" ");
+
         filtrado[label] = obj[key];
       }
     }
     return filtrado;
   }
 
-  // --- Filtragem dinâmica
-  function filtrarChamados(chamado) {
-    let atendeFiltro = true;
-
-    if (searchValue) {
-      const termoBusca = searchValue.toLowerCase();
-      atendeFiltro =
-        chamado["Título"]?.toLowerCase().includes(termoBusca) ||
-        chamado["Descrição"]?.toLowerCase().includes(termoBusca) ||
-        chamado["Requisitante"]?.toLowerCase().includes(termoBusca) ||
-        chamado["Código"]?.toString().includes(termoBusca);
-    }
-
-    if (statusFilter.length > 0) {
-      atendeFiltro =
-        atendeFiltro &&
-        statusFilter.includes(String(chamado["Status"])?.toLowerCase());
-    }
-
-    if (prioridadeFilter.length > 0) {
-      atendeFiltro =
-        atendeFiltro &&
-        prioridadeFilter.includes(String(chamado["Prioridade"])?.toLowerCase());
-    }
-
-    if (atribuidoFilter.length > 0) {
-      atendeFiltro =
-        atendeFiltro &&
-        atribuidoFilter.includes(
-          String(chamado["Técnico Atribuído"])?.toLowerCase()
-        );
-    }
-
-    return atendeFiltro;
-  }
-
-  // --- Busca inicial
   useEffect(() => {
     const fetchChamados = async () => {
+      setCarregando(true);
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/chamados/abertos`
         );
 
-        const normalizados = response.data.map(normalizarChamado);
-        setChamadosOriginais(normalizados);
+        // 🔹 Normalizar todos os chamados recebidos
+        const chamadosNormalizados = response.data.map((chamado) =>
+          normalizarChamado(chamado)
+        );
 
-        // 🔹 Extrair valores únicos de cada coluna
-        const uniqueStatuses = [
-          ...new Set(
-            normalizados
-              .map((c) => c["Status"])
-              .filter((v) => v != null && String(v).trim() !== "")
-          ),
+        // Extrair valores únicos
+        setChamados(chamadosNormalizados);
+        const status = [
+          ...new Set(chamadosNormalizados.map((c) => c["Status"])),
+        ];
+        const prioridade = [
+          ...new Set(chamadosNormalizados.map((c) => c["Substatus"])),
+        ];
+        const atribuido = [
+          ...new Set(chamadosNormalizados.map((c) => c["Técnico Atribuído"])),
         ];
 
-        const uniquePrioridades = [
-          ...new Set(
-            normalizados
-              .map((c) => c["Prioridade"])
-              .filter((v) => v != null && String(v).trim() !== "")
-          ),
-        ];
-
-        const uniqueAtribuidos = [
-          ...new Set(
-            normalizados
-              .map((c) => c["Técnico Atribuído"])
-              .filter((v) => v != null && String(v).trim() !== "")
-          ),
-        ];
-
-        setStatusOptions(uniqueStatuses);
-        setPrioridadeOptions(uniquePrioridades);
-        setAtribuidoOptions(uniqueAtribuidos);
+        // Atualizar estados
+        setOpcoesStatus(status.filter(Boolean));
+        setOpcoesPrioridade(prioridade.filter(Boolean));
+        setOpcoesAtribuido(atribuido.filter(Boolean));
+        setChamadosFiltrados(chamadosNormalizados);
+        setCarregando(false);
       } catch (error) {
         console.error("Erro ao buscar chamados:", error);
+        setSnackbarMessage(
+          error.response?.data?.message || "Erro ao buscar os chamados."
+        );
+        setSnackbarOpen(true);
+        setCarregando(false);
       }
     };
 
     fetchChamados();
   }, []);
-  // --- Atualiza os chamados filtrados sempre que filtros mudam
+  
   useEffect(() => {
-    const filtrados = chamadosOriginais.filter(filtrarChamados);
-    setChamados(filtrados);
-  }, [
-    searchValue,
-    statusFilter,
-    prioridadeFilter,
-    atribuidoFilter,
-    chamadosOriginais,
-  ]);
+    let filtrados = [...chamados];
+
+    // 🔍 Filtro por texto
+    if (filtroBusca.trim() !== "") {
+      const termo = filtroBusca.toLowerCase();
+      filtrados = filtrados.filter((c) =>
+        Object.values(c).some((v) => String(v).toLowerCase().includes(termo))
+      );
+    }
+
+    // 🟦 Filtro por status (Status)
+    if (filtroStatus.length > 0) {
+      filtrados = filtrados.filter((c) => filtroStatus.includes(c["Status"]));
+    }
+
+    // 🟧 Filtro por prioridade/substatus
+    if (filtroPrioridade.length > 0) {
+      filtrados = filtrados.filter((c) =>
+        filtroPrioridade.includes(c["Substatus"])
+      );
+    }
+
+    // 🟩 Filtro por técnico atribuído
+    if (filtroAtribuido.length > 0) {
+      filtrados = filtrados.filter((c) =>
+        filtroAtribuido.includes(c["Técnico Atribuído"])
+      );
+    }
+
+    setChamadosFiltrados(filtrados);
+  }, [filtroBusca, filtroStatus, filtroPrioridade, filtroAtribuido, chamados]);
+
   return (
     <>
       <Box
@@ -168,7 +154,7 @@ export default function ListagemChamados() {
           color="primary"
           type="submit"
           onClick={() => {
-            navigate("/Chamados/NovoChamado");
+            navigate("/Chamados/Novo");
           }}
         >
           <FontAwesomeIcon icon={faPlus} />
@@ -180,9 +166,9 @@ export default function ListagemChamados() {
         <CardContent>
           <Box className={styles["search-card__filters"]}>
             <TextField
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
               placeholder="Pesquisar Chamados"
+              value={filtroBusca}
+              onChange={(e) => setFiltroBusca(e.target.value)}
               variant="outlined"
               fullWidth
               margin="none"
@@ -204,18 +190,18 @@ export default function ListagemChamados() {
             >
               <InputLabel id="status-label">Status</InputLabel>
               <Select
-                multiple
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                labelId="status-label"
                 label="Status"
+                multiple
+                defaultValue={[]}
+                value={filtroStatus}
+                onChange={(e) => setFiltroStatus(e.target.value)}
                 renderValue={(selected) =>
-                  selected.length === 0
-                    ? "Selecione"
-                    : selected.map((s) => statusMap[s]).join(", ")
+                  selected.length === 0 ? "Selecione" : selected.join(", ")
                 }
               >
-                {statusOptions.map((status) => (
-                  <MenuItem key={status} value={String(status).toLowerCase()}>
+                {opcoesStatus.map((status) => (
+                  <MenuItem key={status} value={status}>
                     {status}
                   </MenuItem>
                 ))}
@@ -229,22 +215,19 @@ export default function ListagemChamados() {
             >
               <InputLabel id="prioridade-label">Prioridade</InputLabel>
               <Select
-                multiple
-                value={prioridadeFilter}
-                onChange={(e) => setPrioridadeFilter(e.target.value)}
+                labelId="prioridade-label"
                 label="Prioridade"
+                multiple
+                defaultValue={[]}
+                value={filtroPrioridade}
+                onChange={(e) => setFiltroPrioridade(e.target.value)}
                 renderValue={(selected) =>
-                  selected.length === 0
-                    ? "Selecione"
-                    : selected.map((s) => statusMap[s]).join(", ")
+                  selected.length === 0 ? "Selecione" : selected.join(", ")
                 }
               >
-                {prioridadeOptions.map((prioridade) => (
-                  <MenuItem
-                    key={prioridade}
-                    value={String(prioridade).toLowerCase()}
-                  >
-                    {prioridade}
+                {opcoesPrioridade.map((p) => (
+                  <MenuItem key={p} value={p}>
+                    {p}
                   </MenuItem>
                 ))}
               </Select>
@@ -257,19 +240,19 @@ export default function ListagemChamados() {
             >
               <InputLabel id="atribuido-label">Atribuído a</InputLabel>
               <Select
-                multiple
-                value={atribuidoFilter}
-                onChange={(e) => setAtribuidoFilter(e.target.value)}
+                labelId="atribuido-label"
                 label="Atribuído a"
+                multiple
+                defaultValue={[]}
+                value={filtroAtribuido}
+                onChange={(e) => setFiltroAtribuido(e.target.value)}
                 renderValue={(selected) =>
-                  selected.length === 0
-                    ? "Selecione"
-                    : selected.map((s) => statusMap[s]).join(", ")
+                  selected.length === 0 ? "Selecione" : selected.join(", ")
                 }
               >
-                {atribuidoOptions.map((user) => (
-                  <MenuItem key={user} value={String(user).toLowerCase()}>
-                    {user}
+                {opcoesAtribuido.map((tec) => (
+                  <MenuItem key={tec} value={tec}>
+                    {tec}
                   </MenuItem>
                 ))}
               </Select>
@@ -279,12 +262,12 @@ export default function ListagemChamados() {
       </Card>
       <Card>
         <DataGridData
-          data={chamados || []}
-          loading={false}
+          data={chamadosFiltrados || []}
+          loading={carregando}
           error={false}
           initialPageSize={10}
           onRowClick={(row) => {
-            navigate(`/Chamados/Detalhes/${row.row["Código"]}`);
+            navigate(`/Chamados/Detalhes/${row.row.Código}`);
           }}
         />
       </Card>

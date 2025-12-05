@@ -26,6 +26,66 @@ export default function DetalhesChamados() {
   const navigate = useNavigate();
 
   const [chamado, setChamado] = useState(null);
+  // Valores selecionados do chamado
+  const [statusAtual, setStatusAtual] = useState("");
+  const [prioridadeAtual, setPrioridadeAtual] = useState("");
+  const [tecnicoAtual, setTecnicoAtual] = useState("");
+  const [categoriaAtual, setCategoriaAtual] = useState("");
+
+  // Listas carregadas da API
+  const [listaStatus, setListaStatus] = useState([]);
+  const [listaPrioridade, setListaPrioridade] = useState([]);
+  const [listaTecnico, setListaTecnico] = useState([]);
+  const [listaCategoria, setListaCategoria] = useState([]);
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/status`
+        );
+        console.log(response.data);
+        setListaStatus(response.data);
+      } catch (error) {
+        console.error("Erro ao buscar status:", error);
+      }
+    };
+
+    const fetchPrioridade = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/prioridades`
+        );
+        setListaPrioridade(response.data);
+      } catch (error) {
+        console.error("Erro ao buscar prioridades:", error);
+      }
+    };
+
+    const fetchTecnico = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/tecnicos`
+        );
+        setListaTecnico(response.data);
+      } catch (error) {
+        console.error("Erro ao buscar técnicos:", error);
+      }
+    };
+    const fetchCategoria = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/categorias`
+        );
+        setListaCategoria(response.data);
+      } catch (error) {
+        console.error("Erro ao buscar categorias:", error);
+      }
+    };
+    fetchStatus();
+    fetchPrioridade();
+    fetchTecnico();
+    fetchCategoria();
+  }, []);
 
   useEffect(() => {
     const fetchChamado = async () => {
@@ -33,8 +93,13 @@ export default function DetalhesChamados() {
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/chamados/${id}`
         );
-        console.log("Detalhes do chamado:", response.data);
+
         setChamado(response.data);
+
+        setStatusAtual(response.data.status.id);
+        setPrioridadeAtual(response.data.prioridade.id);
+        setTecnicoAtual(response.data.tecnico_atribuido?.id || "");
+        setCategoriaAtual(response.data.categoria?.id || "");
       } catch (error) {
         console.error("Erro ao buscar chamado:", error);
       }
@@ -188,26 +253,27 @@ export default function DetalhesChamados() {
               </Typography>
               <Typography>{chamado.descricao}</Typography>
             </Box>
-            {chamado.anexo &&(
-            <Box width={"100%"}>
-              <Typography className={styles["detalhes__info-title-bold"]}>
-                Anexo
-              </Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                target="_blank"
-                href={chamado.anexo ?? null}
-                disabled={!chamado.anexo}
-              >
-                {(
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <FontAwesomeIcon icon={faPaperclip} />
-                    <p>Visualizar Anexo</p>
-                  </Box>
-                ) ?? "Nenhum anexo"}
-              </Button>
-            </Box>)}
+            {chamado.anexo && (
+              <Box width={"100%"}>
+                <Typography className={styles["detalhes__info-title-bold"]}>
+                  Anexo
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  target="_blank"
+                  href={chamado.anexo ?? null}
+                  disabled={!chamado.anexo}
+                >
+                  {(
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <FontAwesomeIcon icon={faPaperclip} />
+                      <p>Visualizar Anexo</p>
+                    </Box>
+                  ) ?? "Nenhum anexo"}
+                </Button>
+              </Box>
+            )}
           </Box>
         </Card>
 
@@ -233,7 +299,7 @@ export default function DetalhesChamados() {
                 </Card>
               ))
             ) : (
-              <Typography>Nenhuma nota ou atividade registrada.</Typography>
+              <Typography>Nenhuma nota ou atividade.</Typography>
             )}
           </Box>
         </Card>
@@ -244,18 +310,58 @@ export default function DetalhesChamados() {
           <Typography className={styles["detalhes__acoes-title"]} variant="h6">
             Ações
           </Typography>
-          {["Status", "Categoria", "Técnico Atribuído", "Prioridade"].map(
-            (label, index) => (
-              <FormControl key={index} fullWidth margin="normal" size="small">
-                <FormLabel>Alterar {label}</FormLabel>
-                <Select>
-                  <MenuItem value="1">Opção 1</MenuItem>
-                  <MenuItem value="2">Opção 2</MenuItem>
-                  <MenuItem value="3">Opção 3</MenuItem>
-                </Select>
-              </FormControl>
-            )
-          )}
+          <FormControl fullWidth margin="normal" size="small">
+            <FormLabel>Alterar Status</FormLabel>
+            <Select
+              value={statusAtual}
+              onChange={(e) => setStatusAtual(e.target.value)}
+            >
+              {listaStatus.map((st) => (
+                <MenuItem key={st.id} value={st.id}>
+                  {st.nome}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal" size="small">
+            <FormLabel>Alterar Categoria</FormLabel>
+            <Select
+              value={categoriaAtual}
+              onChange={(e) => setCategoriaAtual(e.target.value)}
+            >
+              {listaCategoria.map((cat) => (
+                <MenuItem key={cat.id} value={cat.id}>
+                  {cat.descricao}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal" size="small">
+            <FormLabel>Técnico Atribuído</FormLabel>
+            <Select
+              value={tecnicoAtual}
+              onChange={(e) => setTecnicoAtual(e.target.value)}
+            >
+              {listaTecnico.map((tec) => (
+                <MenuItem key={tec.id} value={tec.id}>
+                  {tec.nome}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal" size="small">
+            <FormLabel>Prioridade</FormLabel>
+            <Select
+              value={prioridadeAtual}
+              onChange={(e) => setPrioridadeAtual(e.target.value)}
+            >
+              {listaPrioridade.map((p) => (
+                <MenuItem key={p.id} value={p.id}>
+                  {p.descricao}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <Button variant="contained" color="primary" sx={{ mt: 2 }}>
             Salvar
           </Button>

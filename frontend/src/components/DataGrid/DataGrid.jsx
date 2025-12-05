@@ -55,7 +55,7 @@ function DataGridData({
   loading = false,
   setSelectedValues,
   selectedValues,
-  onRowClick = () => {},
+  onRowClick,
 }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(initialPageSize);
@@ -174,13 +174,13 @@ function DataGridData({
         rows={currentPageRows}
         columns={displayedColumns}
         rowCount={normalizedRows.length}
+        onRowClick={onRowClick}
         paginationMode="server"
         autoHeight
         hideFooter
         localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
         disableColumnFilter
         className="custom-data-grid"
-        onRowClick={onRowClick}
         disableRowSelectionOnClick
         {...selectionProps}
       />
