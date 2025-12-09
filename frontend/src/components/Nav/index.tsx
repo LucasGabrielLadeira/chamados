@@ -7,6 +7,7 @@ import {
   faUser,
   faGear,
   faEnvelope,
+  faGauge,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Route, useNavigate } from "react-router-dom";
@@ -47,7 +48,7 @@ export default function Nav({ menuToggled, className = "" }: NavProps) {
   const rotas = [
     {
       Title: "Dashboard",
-      Icon: faFileInvoiceDollar,
+      Icon: faGauge,
       Route: "./Chamados/Dashboard",
     },
     {

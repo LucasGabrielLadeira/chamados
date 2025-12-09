@@ -36,12 +36,12 @@ export default function ListagemChamados() {
   const [chamadosFiltrados, setChamadosFiltrados] = useState([]);
 
   function normalizarChamado(obj) {
-    const camposDesejados = [
+    const campos = [
       "Código",
       "Título",
       "Descrição",
       "Status",
-      "Substatus",
+      "Prioridade",
       "Técnico Atribuído",
       "Data Abertura",
       "Requisitante",
@@ -49,17 +49,19 @@ export default function ListagemChamados() {
 
     const filtrado = {};
 
-    for (const key of camposDesejados) {
+    for (const key of campos) {
       if (obj.hasOwnProperty(key)) {
-        // Converter "tecnico_matricula" -> "Tecnico Matricula"
-        const label = key
-          .split("_")
-          .map((palavra) => palavra.charAt(0).toUpperCase() + palavra.slice(1))
-          .join(" ");
+        const valor = obj[key];
 
-        filtrado[label] = obj[key];
+        // Se for objeto (Status, Substatus, Técnico, Requisitante)
+        if (typeof valor === "object" && valor !== null) {
+          filtrado[key] = valor.descricao ?? valor.nome ?? "-";
+        } else {
+          filtrado[key] = valor;
+        }
       }
     }
+
     return filtrado;
   }
 
@@ -82,7 +84,7 @@ export default function ListagemChamados() {
           ...new Set(chamadosNormalizados.map((c) => c["Status"])),
         ];
         const prioridade = [
-          ...new Set(chamadosNormalizados.map((c) => c["Substatus"])),
+          ...new Set(chamadosNormalizados.map((c) => c["Prioridade"])),
         ];
         const atribuido = [
           ...new Set(chamadosNormalizados.map((c) => c["Técnico Atribuído"])),
@@ -106,7 +108,7 @@ export default function ListagemChamados() {
 
     fetchChamados();
   }, []);
-  
+
   useEffect(() => {
     let filtrados = [...chamados];
 
@@ -126,7 +128,7 @@ export default function ListagemChamados() {
     // 🟧 Filtro por prioridade/substatus
     if (filtroPrioridade.length > 0) {
       filtrados = filtrados.filter((c) =>
-        filtroPrioridade.includes(c["Substatus"])
+        filtroPrioridade.includes(c["Prioridade"])
       );
     }
 

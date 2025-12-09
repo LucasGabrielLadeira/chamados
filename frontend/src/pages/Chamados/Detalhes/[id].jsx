@@ -24,26 +24,39 @@ import styles from "./DetalhesChamados.module.css";
 export default function DetalhesChamados() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [chamado, setChamado] = useState(null);
-  // Valores selecionados do chamado
   const [statusAtual, setStatusAtual] = useState("");
   const [prioridadeAtual, setPrioridadeAtual] = useState("");
   const [tecnicoAtual, setTecnicoAtual] = useState("");
   const [categoriaAtual, setCategoriaAtual] = useState("");
-
-  // Listas carregadas da API
   const [listaStatus, setListaStatus] = useState([]);
   const [listaPrioridade, setListaPrioridade] = useState([]);
   const [listaTecnico, setListaTecnico] = useState([]);
   const [listaCategoria, setListaCategoria] = useState([]);
+
+  const fetchChamado = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_API_URL}/chamados/${id}`
+        );
+        console.log(response.data);
+        setChamado(response.data);
+
+        setStatusAtual(response.data.status.id ?? "");
+        setPrioridadeAtual(response.data.prioridade.id ?? "");
+        setTecnicoAtual(response.data.tecnico_atribuido?.matricula ?? "");
+        setCategoriaAtual(response.data.tipo_problema?.id ?? "");
+      } catch (error) {
+        console.error("Erro ao buscar chamado:", error);
+      }
+    };
+
   useEffect(() => {
     const fetchStatus = async () => {
       try {
         const response = await axios.get(
           `${import.meta.env.VITE_API_URL}/status`
         );
-        console.log(response.data);
         setListaStatus(response.data);
       } catch (error) {
         console.error("Erro ao buscar status:", error);
@@ -88,25 +101,19 @@ export default function DetalhesChamados() {
   }, []);
 
   useEffect(() => {
-    const fetchChamado = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/chamados/${id}`
-        );
-
-        setChamado(response.data);
-
-        setStatusAtual(response.data.status.id);
-        setPrioridadeAtual(response.data.prioridade.id);
-        setTecnicoAtual(response.data.tecnico_atribuido?.id || "");
-        setCategoriaAtual(response.data.categoria?.id || "");
-      } catch (error) {
-        console.error("Erro ao buscar chamado:", error);
-      }
-    };
-
     fetchChamado();
   }, [id]);
+
+  const salvar = async () => {
+    // Lógica para salvar as alterações do chamado
+    await axios.patch(`${import.meta.env.VITE_API_URL}/chamados/${id}`, {
+      status_id: statusAtual,
+      prioridade_id: prioridadeAtual,
+      tecnico_matricula: tecnicoAtual || null,
+      tipo_problema: categoriaAtual || null,
+    });
+    fetchChamado();
+  };
 
   if (!chamado) {
     return (
@@ -155,6 +162,8 @@ export default function DetalhesChamados() {
                 color={getTextColor(chamado.status.cor)}
                 px={1}
                 borderRadius={1}
+                boxShadow={"0 2px 8px rgba(0, 0, 0, 0.1)"}
+                elevation={2}
               >
                 {chamado.status.descricao}
               </Typography>
@@ -163,8 +172,10 @@ export default function DetalhesChamados() {
                 color={getTextColor(chamado.prioridade.cor)}
                 px={1}
                 borderRadius={1}
+                boxShadow={"0 2px 8px rgba(0, 0, 0, 0.1)"}
+                elevation={2}
               >
-                {chamado.prioridade.descricao} Prioridade
+                Prioridade - {chamado.prioridade.descricao} 
               </Typography>
             </Box>
           </Box>
@@ -235,7 +246,7 @@ export default function DetalhesChamados() {
                   Tipo de Problema
                 </Typography>
                 <Typography className={styles["detalhes__info-text"]}>
-                  {chamado.tipo_problema}
+                  {chamado.tipo_problema.descricao || "N/A"}
                 </Typography>
               </Box>
             </Box>
@@ -339,11 +350,11 @@ export default function DetalhesChamados() {
           <FormControl fullWidth margin="normal" size="small">
             <FormLabel>Técnico Atribuído</FormLabel>
             <Select
-              value={tecnicoAtual}
+              value={String(tecnicoAtual)}
               onChange={(e) => setTecnicoAtual(e.target.value)}
             >
               {listaTecnico.map((tec) => (
-                <MenuItem key={tec.id} value={tec.id}>
+                <MenuItem key={tec.matricula} value={tec.matricula}>
                   {tec.nome}
                 </MenuItem>
               ))}
@@ -362,7 +373,12 @@ export default function DetalhesChamados() {
               ))}
             </Select>
           </FormControl>
-          <Button variant="contained" color="primary" sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            onClick={salvar}
+            color="primary"
+            sx={{ mt: 2 }}
+          >
             Salvar
           </Button>
         </Card>
