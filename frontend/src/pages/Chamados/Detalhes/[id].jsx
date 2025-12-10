@@ -10,6 +10,8 @@ import {
   CircularProgress,
   MenuItem,
   TextareaAutosize,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -20,30 +22,45 @@ import {
 import { useEffect, useState } from "react";
 import axios from "axios";
 import styles from "./DetalhesChamados.module.css";
-
 export default function DetalhesChamados() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [chamado, setChamado] = useState(null);
-  // Valores selecionados do chamado
   const [statusAtual, setStatusAtual] = useState("");
   const [prioridadeAtual, setPrioridadeAtual] = useState("");
   const [tecnicoAtual, setTecnicoAtual] = useState("");
   const [categoriaAtual, setCategoriaAtual] = useState("");
-
-  // Listas carregadas da API
   const [listaStatus, setListaStatus] = useState([]);
   const [listaPrioridade, setListaPrioridade] = useState([]);
   const [listaTecnico, setListaTecnico] = useState([]);
   const [listaCategoria, setListaCategoria] = useState([]);
+  const [nota, setNota] = useState("");
+  const matricula = localStorage.getItem("matricula");
+  const [visivelCliente, setVisivelCliente] = useState(false);
+
+  const fetchChamado = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/chamados/${id}`
+      );
+      console.log(response.data);
+      setChamado(response.data);
+
+      setStatusAtual(response.data.status.id ?? "");
+      setPrioridadeAtual(response.data.prioridade.id ?? "");
+      setTecnicoAtual(response.data.tecnico_atribuido?.matricula ?? "");
+      setCategoriaAtual(response.data.tipo_problema?.id ?? "");
+    } catch (error) {
+      console.error("Erro ao buscar chamado:", error);
+    }
+  };
+
   useEffect(() => {
     const fetchStatus = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/status`
+          `${import.meta.env.VITE_API_URL}/chamados/status`
         );
-        console.log(response.data);
         setListaStatus(response.data);
       } catch (error) {
         console.error("Erro ao buscar status:", error);
@@ -53,7 +70,7 @@ export default function DetalhesChamados() {
     const fetchPrioridade = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/prioridades`
+          `${import.meta.env.VITE_API_URL}/chamados/prioridades`
         );
         setListaPrioridade(response.data);
       } catch (error) {
@@ -64,7 +81,7 @@ export default function DetalhesChamados() {
     const fetchTecnico = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/tecnicos`
+          `${import.meta.env.VITE_API_URL}/chamados/tecnicos/disponiveis`
         );
         setListaTecnico(response.data);
       } catch (error) {
@@ -74,7 +91,7 @@ export default function DetalhesChamados() {
     const fetchCategoria = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/categorias`
+          `${import.meta.env.VITE_API_URL}/chamados/categorias`
         );
         setListaCategoria(response.data);
       } catch (error) {
@@ -88,25 +105,42 @@ export default function DetalhesChamados() {
   }, []);
 
   useEffect(() => {
-    const fetchChamado = async () => {
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL}/chamados/${id}`
-        );
-
-        setChamado(response.data);
-
-        setStatusAtual(response.data.status.id);
-        setPrioridadeAtual(response.data.prioridade.id);
-        setTecnicoAtual(response.data.tecnico_atribuido?.id || "");
-        setCategoriaAtual(response.data.categoria?.id || "");
-      } catch (error) {
-        console.error("Erro ao buscar chamado:", error);
-      }
-    };
-
     fetchChamado();
   }, [id]);
+
+  const salvar = async () => {
+    // Lógica para salvar as alterações do chamado
+    await axios.patch(`${import.meta.env.VITE_API_URL}/chamados/${id}`, {
+      status_id: statusAtual,
+      prioridade_id: prioridadeAtual,
+      tecnico_matricula: tecnicoAtual || null,
+      tipo_problema: categoriaAtual || null,
+    });
+    fetchChamado();
+  };
+
+  const addNote = async () => {
+    // Lógica para salvar as alterações do chamado
+    if (nota.trim() != " ") {
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/chamados/${id}/notas`,
+        {
+          nota: nota,
+          matricula_cadastrante: matricula,
+          visivel_cliente: visivelCliente,
+        }
+      );
+      fetchChamado();
+    }
+  };
+
+  const finalizar = async () => {
+    // Lógica para salvar as alterações do chamado
+    await axios.patch(`${import.meta.env.VITE_API_URL}/chamados/${id}`, {
+      status_id: 3,
+    });
+    fetchChamado();
+  };
 
   if (!chamado) {
     return (
@@ -155,17 +189,22 @@ export default function DetalhesChamados() {
                 color={getTextColor(chamado.status.cor)}
                 px={1}
                 borderRadius={1}
+                boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
               >
                 {chamado.status.descricao}
               </Typography>
-              <Typography
-                bgcolor={chamado.prioridade.cor}
-                color={getTextColor(chamado.prioridade.cor)}
-                px={1}
-                borderRadius={1}
-              >
-                {chamado.prioridade.descricao} Prioridade
-              </Typography>
+
+              {chamado.prioridade.descricao != "-" && (
+                <Typography
+                  bgcolor={chamado.prioridade.cor}
+                  color={getTextColor(chamado.prioridade.cor)}
+                  px={1}
+                  borderRadius={1}
+                  boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
+                >
+                  Prioridade - {chamado.prioridade.descricao}
+                </Typography>
+              )}
             </Box>
           </Box>
           <Typography className={styles["detalhes__header-info__subtitle"]}>
@@ -235,7 +274,7 @@ export default function DetalhesChamados() {
                   Tipo de Problema
                 </Typography>
                 <Typography className={styles["detalhes__info-text"]}>
-                  {chamado.tipo_problema}
+                  {chamado.tipo_problema.descricao || "N/A"}
                 </Typography>
               </Box>
             </Box>
@@ -311,23 +350,11 @@ export default function DetalhesChamados() {
             Ações
           </Typography>
           <FormControl fullWidth margin="normal" size="small">
-            <FormLabel>Alterar Status</FormLabel>
-            <Select
-              value={statusAtual}
-              onChange={(e) => setStatusAtual(e.target.value)}
-            >
-              {listaStatus.map((st) => (
-                <MenuItem key={st.id} value={st.id}>
-                  {st.nome}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="normal" size="small">
             <FormLabel>Alterar Categoria</FormLabel>
             <Select
               value={categoriaAtual}
               onChange={(e) => setCategoriaAtual(e.target.value)}
+              disabled={statusAtual === 3}
             >
               {listaCategoria.map((cat) => (
                 <MenuItem key={cat.id} value={cat.id}>
@@ -339,11 +366,12 @@ export default function DetalhesChamados() {
           <FormControl fullWidth margin="normal" size="small">
             <FormLabel>Técnico Atribuído</FormLabel>
             <Select
-              value={tecnicoAtual}
+              value={String(tecnicoAtual)}
               onChange={(e) => setTecnicoAtual(e.target.value)}
+              disabled={statusAtual === 3}
             >
               {listaTecnico.map((tec) => (
-                <MenuItem key={tec.id} value={tec.id}>
+                <MenuItem key={tec.matricula} value={tec.matricula}>
                   {tec.nome}
                 </MenuItem>
               ))}
@@ -354,6 +382,7 @@ export default function DetalhesChamados() {
             <Select
               value={prioridadeAtual}
               onChange={(e) => setPrioridadeAtual(e.target.value)}
+              disabled={statusAtual === 3}
             >
               {listaPrioridade.map((p) => (
                 <MenuItem key={p.id} value={p.id}>
@@ -362,8 +391,21 @@ export default function DetalhesChamados() {
               ))}
             </Select>
           </FormControl>
-          <Button variant="contained" color="primary" sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            onClick={salvar}
+            color="primary"
+            sx={{ mt: 2 }}
+          >
             Salvar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={finalizar}
+            color="primary"
+            sx={{ mt: 2 }}
+          >
+            Encerrar Chamado
           </Button>
         </Card>
 
@@ -374,17 +416,27 @@ export default function DetalhesChamados() {
           >
             Adicionar Nota
           </Typography>
+
           <FormControl fullWidth margin="normal" size="small">
             <TextareaAutosize
               minRows={4}
               maxRows={4}
               placeholder="Escreva uma nota..."
               className={styles["detalhes__textarea"]}
+              value={nota}
+              onChange={(e) => setNota(e.target.value)}
+            />
+          </FormControl>
+          <FormControl>
+            <FormControlLabel
+              control={<Switch visivelCliente />}
+              label="Visível para o usuário"
             />
           </FormControl>
           <Button
             variant="contained"
             color="primary"
+            onClick={addNote}
             startIcon={<FontAwesomeIcon icon={faPlus} />}
             sx={{ mt: 2 }}
           >

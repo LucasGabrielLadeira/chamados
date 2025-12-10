@@ -72,7 +72,7 @@ export default function LoginForm({
         localStorage.setItem("centro_custo", data.centroDeCusto);
         localStorage.setItem("matricula", data.matricula);
         localStorage.setItem("nivel_acesso", data.nivel_acesso);
-        window.location.href = "../Compras/SolCompra";
+        window.location.href = "../Chamados/Dashboard";
       } else {
         console.error("Erro no login:", data.message || data);
         handleError(data.message || "Erro ao realizar login.");

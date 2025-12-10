@@ -9,14 +9,29 @@ import {
   XAxis,
   Tooltip,
   YAxis,
+  Label,
+  PolarAngleAxis,
+  CartesianGrid,
+  LabelList,
 } from "recharts";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, CircularProgress, Typography, Card } from "@mui/material";
 import styles from "./Dashboard.module.css";
+import {
+  faHourglass,
+  faExpand,
+  faCompress,
+} from "@fortawesome/free-solid-svg-icons";
+import { usePresentation } from "../../../context/PresentationContext";
+
 export default function Dashboard() {
   const [data, setData] = useState(null);
+  const { presentationMode, enterPresentation, exitPresentation } =
+    usePresentation();
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL}/dashboard`).then((res) => {
+    axios.get(`${import.meta.env.VITE_API_URL}/chamados/dashboard/resumo`).then((res) => {
+      console.log(res.data);
       setData(res.data);
     });
   }, []);
@@ -32,13 +47,24 @@ export default function Dashboard() {
   return (
     <Box>
       {/* Título */}
-      <Box>
-        <Typography>Dashboard</Typography>
-        <Typography>Visão geral dos chamados e atividades</Typography>
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box>
+          <p className={styles["dashboard_title"]}>Dashboard</p>
+          <Typography className={styles["dashboard_subtitle"]}>
+            Visão geral dos chamados e atividades
+          </Typography>
+        </Box>
+        <button
+          onClick={presentationMode ? exitPresentation : enterPresentation}
+          className={styles["dashboard_presentation_button"]}
+        >
+          <FontAwesomeIcon icon={presentationMode ? faCompress : faExpand} />
+          {presentationMode ? "Sair da apresentação" : "Modo apresentação"}
+        </button>
       </Box>
 
       {/* Linha superior – SLAs + urgências */}
-      <Box>
+      <Box className={styles["dashboard_topline"]}>
         <CardSLA
           titulo="SLA Atendimento"
           valor={data.sla_atendimento}
@@ -57,33 +83,66 @@ export default function Dashboard() {
       </Box>
 
       {/* Resumo */}
-      <Card>
-        <Typography>Resumo dos Chamados</Typography>
+      <Box className={styles["dashboard_summary"]}>
+        <p className={styles["dashboard_summary_title"]}>Resumo dos Chamados</p>
 
-        <Box>
+        <Box className={styles["dashboard_summary_cards"]}>
           <CardNumero titulo="Atribuídos a mim" valor={data.resumo.atribuido} />
           <CardNumero titulo="Pendentes" valor={data.resumo.pendentes} />
           <CardNumero titulo="Concluídos" valor={data.resumo.concluidos} />
         </Box>
-      </Card>
+      </Box>
 
       {/* Carga de Trabalho */}
-      <Card>
-        <Typography>Carga de Trabalho</Typography>
+      <Box className={styles["dashboard_cargaTrabalho"]}>
+        <p className={styles["dashboard_cargaTrabalho_title"]}>
+          Carga de Trabalho
+        </p>
 
-        <Box>
-          <Typography>Chamados por Técnico</Typography>
+        <Card className={styles["dashboard_cargaTrabalho_card"]}>
+          <Typography className={styles["dashboard_cargaTrabalho_cardtitle"]}>
+            Chamados por Técnico
+          </Typography>
 
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.carga_trabalho}>
-              <XAxis dataKey="tecnico" />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Bar dataKey="quantidade" fill="#60a5fa" radius={[6, 6, 0, 0]} />
+            <BarChart
+              data={data.cargaTrabalho}
+              margin={{ top: 30, right: 20, left: 20, bottom: 20 }}
+              barCategoryGap={40} // espaço ENTRE categorias
+              barGap={8} // espaço ENTRE barras (se houver mais de uma)
+            >
+              {/* Remove linhas */}
+              <CartesianGrid vertical={false} horizontal={false} />
+
+              {/* Remove marcas de quantidade */}
+              <YAxis hide />
+              <XAxis
+                dataKey="tecnico"
+                axisLine={false}
+                tickLine={false}
+                interval={0}
+              />
+
+              {/* Barra */}
+              <Bar
+                dataKey="quantidade"
+                fill="#60a5fa"
+                barSize={40} // CONTROLA a largura da barra
+                radius={[6, 6, 0, 0]}
+              >
+                {/* Valor em cima da barra */}
+                <LabelList
+                  dataKey="quantidade"
+                  position="top"
+                  fill="#374151"
+                  fontSize={13}
+                  fontWeight={600}
+                />
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </Box>
-      </Card>
+        </Card>
+      </Box>
     </Box>
   );
 }
@@ -94,34 +153,55 @@ function CardSLA({ titulo, valor, meta, cor }) {
   const grafico = [{ name: titulo, value: valor, fill: cor }];
 
   return (
-    <Card>
-      <Typography>{titulo}</Typography>
+    <Card className={styles["dashboard_cardSla"]}>
+      <Typography className={styles["dashboard_cardSla_title"]}>
+        <FontAwesomeIcon icon={faHourglass} />
+        {titulo}
+      </Typography>
 
-      <Box>
-        <Box>
-          <ResponsiveContainer>
+      <Box className={styles["dashboard_cardSla_content"]}>
+        <Box width={140} height={140}>
+          <ResponsiveContainer width="100%" height="100%">
             <RadialBarChart
+              data={grafico}
               innerRadius="70%"
               outerRadius="100%"
-              data={grafico}
               startAngle={90}
               endAngle={450}
             >
+              <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
               <RadialBar
-                minAngle={15}
-                clockWise
-                background
                 dataKey="value"
                 cornerRadius={20}
-              />
+                clockWise
+                fill="#3b82f6"
+              >
+                <Label
+                  value={`${valor}%`}
+                  position="center"
+                  fill="#111827"
+                  style={{
+                    fontSize: "20px",
+                    fontWeight: 600,
+                  }}
+                />
+              </RadialBar>
             </RadialBarChart>
           </ResponsiveContainer>
         </Box>
 
         <Box>
-          <Typography>{valor}%</Typography>
-          <Typography>Meta: {meta}%</Typography>
-          <Typography>Desempenho dentro do prazo.</Typography>
+          <Typography sx={{ fontWeight: "600" }}>Meta: {meta}%</Typography>
+
+          {valor >= meta ? (
+            <Typography color="success.main">
+              Desempenho dentro do prazo.
+            </Typography>
+          ) : (
+            <Typography color="error.main">
+              Desempenho abaixo do esperado.
+            </Typography>
+          )}
         </Box>
       </Box>
     </Card>
@@ -130,18 +210,18 @@ function CardSLA({ titulo, valor, meta, cor }) {
 
 function CardUrgencias({ urgencias }) {
   return (
-    <Card>
-      <Typography>Chamados por Urgência</Typography>
+    <Card className={styles["dashboard_cardUrgencias"]}>
+      <Typography sx={{ fontWeight: "bold" }}>Chamados por Urgência</Typography>
 
       <Box>
-        <LinhaUrgencia cor="text-red-500" nome="Alta" valor={urgencias.alta} />
+        <LinhaUrgencia cor="error.main" nome="Alta" valor={urgencias.alta} />
         <LinhaUrgencia
-          cor="text-yellow-500"
+          cor="warning.main"
           nome="Média"
           valor={urgencias.media}
         />
         <LinhaUrgencia
-          cor="text-green-600"
+          cor="success.main"
           nome="Baixa"
           valor={urgencias.baixa}
         />
@@ -152,18 +232,22 @@ function CardUrgencias({ urgencias }) {
 
 function LinhaUrgencia({ nome, valor, cor }) {
   return (
-    <Card>
-      <Typography>{nome}</Typography>
+    <Box className={styles["dashboard_linhaUrgencia"]}>
+      <Typography color={cor}>{nome}</Typography>
       <Typography>{valor}</Typography>
-    </Card>
+    </Box>
   );
 }
 
 function CardNumero({ titulo, valor }) {
   return (
-    <Card>
-      <Typography>{titulo}</Typography>
-      <Typography>{valor}</Typography>
+    <Card className={styles["dashboard_cardNumero"]}>
+      <p className={styles["dashboard_cardNumero_title"]}>
+        {titulo}
+      </p>
+      <p className={styles["dashboard_cardNumero_summary"]}>
+        {valor}
+      </p>
     </Card>
   );
 }
