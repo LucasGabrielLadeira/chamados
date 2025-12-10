@@ -14,7 +14,7 @@ import CustomSnackbar from "../../../components/SnackBar/SnackBar";
 import FileUploadBox from "../../../components/FileUploadBox/FileUploadBox";
 import styles from "./NovoChamado.module.css";
 import { use, useState } from "react";
-import axios from "axios";
+import api from "../../Auth/axios";
 export default function NovoChamado() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -65,7 +65,7 @@ export default function NovoChamado() {
     if (arquivo) formData.append("arquivo", arquivo);
 
     try {
-      const response = await axios.post(
+      const response = await api.post(
         `${import.meta.env.VITE_API_URL}/chamados`,
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }

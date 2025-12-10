@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../Auth/axios";
 import {
   RadialBarChart,
   RadialBar,
@@ -30,7 +30,7 @@ export default function Dashboard() {
     usePresentation();
 
   useEffect(() => {
-    axios.get(`${import.meta.env.VITE_API_URL}/chamados/dashboard/resumo`).then((res) => {
+    api.get(`${import.meta.env.VITE_API_URL}/chamados/dashboard/resumo`).then((res) => {
       console.log(res.data);
       setData(res.data);
     });

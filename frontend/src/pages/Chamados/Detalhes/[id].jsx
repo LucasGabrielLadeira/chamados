@@ -20,7 +20,7 @@ import {
   faPaperclip,
 } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../Auth/axios";
 import styles from "./DetalhesChamados.module.css";
 export default function DetalhesChamados() {
   const { id } = useParams();
@@ -35,12 +35,11 @@ export default function DetalhesChamados() {
   const [listaTecnico, setListaTecnico] = useState([]);
   const [listaCategoria, setListaCategoria] = useState([]);
   const [nota, setNota] = useState("");
-  const matricula = localStorage.getItem("matricula");
   const [visivelCliente, setVisivelCliente] = useState(false);
 
   const fetchChamado = async () => {
     try {
-      const response = await axios.get(
+      const response = await api.get(
         `${import.meta.env.VITE_API_URL}/chamados/${id}`
       );
       console.log(response.data);
@@ -58,7 +57,7 @@ export default function DetalhesChamados() {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `${import.meta.env.VITE_API_URL}/chamados/status`
         );
         setListaStatus(response.data);
@@ -69,7 +68,7 @@ export default function DetalhesChamados() {
 
     const fetchPrioridade = async () => {
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `${import.meta.env.VITE_API_URL}/chamados/prioridades`
         );
         setListaPrioridade(response.data);
@@ -80,7 +79,7 @@ export default function DetalhesChamados() {
 
     const fetchTecnico = async () => {
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `${import.meta.env.VITE_API_URL}/chamados/tecnicos/disponiveis`
         );
         setListaTecnico(response.data);
@@ -90,7 +89,7 @@ export default function DetalhesChamados() {
     };
     const fetchCategoria = async () => {
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `${import.meta.env.VITE_API_URL}/chamados/categorias`
         );
         setListaCategoria(response.data);
@@ -110,7 +109,7 @@ export default function DetalhesChamados() {
 
   const salvar = async () => {
     // Lógica para salvar as alterações do chamado
-    await axios.patch(`${import.meta.env.VITE_API_URL}/chamados/${id}`, {
+    await api.patch(`${import.meta.env.VITE_API_URL}/chamados/${id}`, {
       status_id: statusAtual,
       prioridade_id: prioridadeAtual,
       tecnico_matricula: tecnicoAtual || null,
@@ -122,21 +121,17 @@ export default function DetalhesChamados() {
   const addNote = async () => {
     // Lógica para salvar as alterações do chamado
     if (nota.trim() != " ") {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/chamados/${id}/notas`,
-        {
-          nota: nota,
-          matricula_cadastrante: matricula,
-          visivel_cliente: visivelCliente,
-        }
-      );
+      await api.post(`${import.meta.env.VITE_API_URL}/chamados/${id}/notas`, {
+        descricao: nota,
+        visivel_cliente: visivelCliente,
+      });
       fetchChamado();
     }
   };
 
   const finalizar = async () => {
     // Lógica para salvar as alterações do chamado
-    await axios.patch(`${import.meta.env.VITE_API_URL}/chamados/${id}`, {
+    await api.patch(`${import.meta.env.VITE_API_URL}/chamados/${id}`, {
       status_id: 3,
     });
     fetchChamado();
@@ -429,7 +424,12 @@ export default function DetalhesChamados() {
           </FormControl>
           <FormControl>
             <FormControlLabel
-              control={<Switch visivelCliente />}
+              control={
+                <Switch
+                  checked={visivelCliente}
+                  onChange={(e) => setVisivelCliente(e.target.checked)}
+                />
+              }
               label="Visível para o usuário"
             />
           </FormControl>

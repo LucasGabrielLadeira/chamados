@@ -16,7 +16,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faPlus } from "@fortawesome/free-solid-svg-icons";
 import DataGridData from "../../../components/DataGrid/DataGrid";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../../Auth/axios";
 import { useEffect, useState } from "react";
 
 export default function ListagemChamados() {
@@ -69,7 +69,7 @@ export default function ListagemChamados() {
     const fetchChamados = async () => {
       setCarregando(true);
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `${import.meta.env.VITE_API_URL}/chamados/abertos`
         );
 
