@@ -13,6 +13,7 @@ import {
   PolarAngleAxis,
   CartesianGrid,
   LabelList,
+  Cell
 } from "recharts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Box, CircularProgress, Typography, Card } from "@mui/material";
@@ -30,10 +31,12 @@ export default function Dashboard() {
     usePresentation();
 
   useEffect(() => {
-    api.get(`${import.meta.env.VITE_API_URL}/chamados/dashboard/resumo`).then((res) => {
-      console.log(res.data);
-      setData(res.data);
-    });
+    api
+      .get(`${import.meta.env.VITE_API_URL}/chamados/dashboard/resumo`)
+      .then((res) => {
+        console.log(res.data);
+        setData(res.data);
+      });
   }, []);
 
   if (!data) {
@@ -108,13 +111,11 @@ export default function Dashboard() {
             <BarChart
               data={data.cargaTrabalho}
               margin={{ top: 30, right: 20, left: 20, bottom: 20 }}
-              barCategoryGap={40} // espaço ENTRE categorias
-              barGap={8} // espaço ENTRE barras (se houver mais de uma)
+              barCategoryGap={40}
+              barGap={8}
             >
-              {/* Remove linhas */}
               <CartesianGrid vertical={false} horizontal={false} />
 
-              {/* Remove marcas de quantidade */}
               <YAxis hide />
               <XAxis
                 dataKey="tecnico"
@@ -123,14 +124,15 @@ export default function Dashboard() {
                 interval={0}
               />
 
-              {/* Barra */}
-              <Bar
-                dataKey="quantidade"
-                fill="#60a5fa"
-                barSize={40} // CONTROLA a largura da barra
-                radius={[6, 6, 0, 0]}
-              >
-                {/* Valor em cima da barra */}
+              <Bar dataKey="quantidade" barSize={40} radius={[6, 6, 0, 0]}>
+                {data.cargaTrabalho.map((item, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={item.is_me ? "#34d399" : "#60a5fa"}
+                    // verde para você, azul para os demais
+                  />
+                ))}
+
                 <LabelList
                   dataKey="quantidade"
                   position="top"
@@ -214,17 +216,14 @@ function CardUrgencias({ urgencias }) {
       <Typography sx={{ fontWeight: "bold" }}>Chamados por Urgência</Typography>
 
       <Box>
-        <LinhaUrgencia cor="error.main" nome="Alta" valor={urgencias.alta} />
-        <LinhaUrgencia
-          cor="warning.main"
-          nome="Média"
-          valor={urgencias.media}
-        />
-        <LinhaUrgencia
-          cor="success.main"
-          nome="Baixa"
-          valor={urgencias.baixa}
-        />
+        {Object.entries(urgencias).map(([nome, item]) => (
+          <LinhaUrgencia
+            key={nome}
+            nome={nome}
+            valor={item.quantidade}
+            cor={item.cor}
+          />
+        ))}
       </Box>
     </Card>
   );
@@ -242,12 +241,8 @@ function LinhaUrgencia({ nome, valor, cor }) {
 function CardNumero({ titulo, valor }) {
   return (
     <Card className={styles["dashboard_cardNumero"]}>
-      <p className={styles["dashboard_cardNumero_title"]}>
-        {titulo}
-      </p>
-      <p className={styles["dashboard_cardNumero_summary"]}>
-        {valor}
-      </p>
+      <p className={styles["dashboard_cardNumero_title"]}>{titulo}</p>
+      <p className={styles["dashboard_cardNumero_summary"]}>{valor}</p>
     </Card>
   );
 }

@@ -36,13 +36,15 @@ export default function DetalhesChamados() {
   const [listaCategoria, setListaCategoria] = useState([]);
   const [nota, setNota] = useState("");
   const [visivelCliente, setVisivelCliente] = useState(false);
+  const [loadingSalvar, setLoadingSalvar] = useState(false);
+  const [loadingNota, setLoadingNota] = useState(false);
+  const [loadingFinalizar, setLoadingFinalizar] = useState(false);
 
   const fetchChamado = async () => {
     try {
       const response = await api.get(
         `${import.meta.env.VITE_API_URL}/chamados/${id}`
       );
-      console.log(response.data);
       setChamado(response.data);
 
       setStatusAtual(response.data.status.id ?? "");
@@ -108,33 +110,62 @@ export default function DetalhesChamados() {
   }, [id]);
 
   const salvar = async () => {
-    // Lógica para salvar as alterações do chamado
-    await api.patch(`${import.meta.env.VITE_API_URL}/chamados/${id}`, {
-      status_id: statusAtual,
-      prioridade_id: prioridadeAtual,
-      tecnico_matricula: tecnicoAtual || null,
-      tipo_problema: categoriaAtual || null,
-    });
-    fetchChamado();
+    if (loadingSalvar) return;
+
+    try {
+      setLoadingSalvar(true);
+
+      await api.patch(`${import.meta.env.VITE_API_URL}/chamados/${id}`, {
+        status_id: statusAtual,
+        prioridade_id: prioridadeAtual,
+        tecnico_matricula: tecnicoAtual || null,
+        tipo_problema: categoriaAtual || null,
+      });
+
+      await fetchChamado();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingSalvar(false);
+    }
   };
 
   const addNote = async () => {
-    // Lógica para salvar as alterações do chamado
-    if (nota.trim() != " ") {
+    if (loadingNota || !nota.trim()) return;
+
+    try {
+      setLoadingNota(true);
+
       await api.post(`${import.meta.env.VITE_API_URL}/chamados/${id}/notas`, {
         descricao: nota,
-        visivel_cliente: visivelCliente,
+        visivel_usuario: visivelCliente,
       });
-      fetchChamado();
+
+      setNota("");
+      await fetchChamado();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingNota(false);
     }
   };
 
   const finalizar = async () => {
-    // Lógica para salvar as alterações do chamado
-    await api.patch(`${import.meta.env.VITE_API_URL}/chamados/${id}`, {
-      status_id: 3,
-    });
-    fetchChamado();
+    if (loadingFinalizar) return;
+
+    try {
+      setLoadingFinalizar(true);
+
+      await api.patch(`${import.meta.env.VITE_API_URL}/chamados/${id}`, {
+        status_id: 3,
+      });
+
+      await fetchChamado();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingFinalizar(false);
+    }
   };
 
   if (!chamado) {
@@ -226,9 +257,7 @@ export default function DetalhesChamados() {
         </Card>
 
         <Card className={styles["detalhes__card"]}>
-          <Typography className={styles["detalhes__title"]}>
-            Detalhes do Chamado
-          </Typography>
+          <p className={styles["detalhes__title"]}>Detalhes do Chamado</p>
           <Box className={styles["detalhes__info"]}>
             <Box className={styles["detalhes__info-column"]}>
               <Box>
@@ -311,31 +340,46 @@ export default function DetalhesChamados() {
           </Box>
         </Card>
 
-        <Card className={styles["detalhes__card"]}>
-          <Typography className={styles["detalhes__title"]}>
-            Notas e Atividades
-          </Typography>
-          <Box className={styles["detalhes__notas"]}>
+        <Card className={styles["activity"]}>
+          <p className={styles["activity__title"]}>Notas e Atividades</p>
+
+          <div className={styles["activity__list"]}>
             {chamado.notas && chamado.notas.length > 0 ? (
               chamado.notas.map((nota) => (
-                <Card key={nota.id} className={styles["detalhes__nota"]}>
-                  <Typography>
-                    {new Date(nota.data_criacao).toLocaleDateString("pt-BR", {
-                      day: "numeric",
-                      month: "numeric",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}{" "}
-                    - {nota.usuario_matricula}
-                  </Typography>
-                  <Typography>{nota.conteudo}</Typography>
-                </Card>
+                <div key={nota.id} className={styles["activity__item"]}>
+                  <div className={styles["activity__header"]}>
+                    <span className={styles["activity__date"]}>
+                      {new Date(nota.data_hora).toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+
+                    <span className={styles["activity__author"]}>
+                      por {nota.cadastrante_nome}
+                    </span>
+                  </div>
+
+                  <div className={styles["activity__status"]}>
+                    {nota.titulo}
+                  </div>
+
+                  <div className={styles["activity__note"]}>
+                    <p className={styles["activity__note-text"]}>
+                      {nota.descricao}
+                    </p>
+                  </div>
+                </div>
               ))
             ) : (
-              <Typography>Nenhuma nota ou atividade.</Typography>
+              <p className={styles["activity__empty"]}>
+                Nenhuma nota ou atividade.
+              </p>
             )}
-          </Box>
+          </div>
         </Card>
       </Box>
 
@@ -349,7 +393,7 @@ export default function DetalhesChamados() {
             <Select
               value={categoriaAtual}
               onChange={(e) => setCategoriaAtual(e.target.value)}
-              disabled={statusAtual === 3}
+              disabled={loadingSalvar || statusAtual === 3}
             >
               {listaCategoria.map((cat) => (
                 <MenuItem key={cat.id} value={cat.id}>
@@ -363,7 +407,7 @@ export default function DetalhesChamados() {
             <Select
               value={String(tecnicoAtual)}
               onChange={(e) => setTecnicoAtual(e.target.value)}
-              disabled={statusAtual === 3}
+              disabled={loadingSalvar || statusAtual === 3}
             >
               {listaTecnico.map((tec) => (
                 <MenuItem key={tec.matricula} value={tec.matricula}>
@@ -377,7 +421,7 @@ export default function DetalhesChamados() {
             <Select
               value={prioridadeAtual}
               onChange={(e) => setPrioridadeAtual(e.target.value)}
-              disabled={statusAtual === 3}
+              disabled={loadingSalvar || statusAtual === 3}
             >
               {listaPrioridade.map((p) => (
                 <MenuItem key={p.id} value={p.id}>
@@ -389,18 +433,26 @@ export default function DetalhesChamados() {
           <Button
             variant="contained"
             onClick={salvar}
-            color="primary"
+            disabled={loadingSalvar}
             sx={{ mt: 2 }}
           >
-            Salvar
+            {loadingSalvar ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              "Salvar"
+            )}
           </Button>
           <Button
             variant="contained"
             onClick={finalizar}
-            color="primary"
+            disabled={loadingFinalizar}
             sx={{ mt: 2 }}
           >
-            Encerrar Chamado
+            {loadingFinalizar ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              "Encerrar Chamado"
+            )}
           </Button>
         </Card>
 
@@ -414,6 +466,7 @@ export default function DetalhesChamados() {
 
           <FormControl fullWidth margin="normal" size="small">
             <TextareaAutosize
+              disabled={loadingNota}
               minRows={4}
               maxRows={4}
               placeholder="Escreva uma nota..."
@@ -437,10 +490,17 @@ export default function DetalhesChamados() {
             variant="contained"
             color="primary"
             onClick={addNote}
-            startIcon={<FontAwesomeIcon icon={faPlus} />}
+            disabled={loadingNota}
+            startIcon={
+              loadingNota ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : (
+                <FontAwesomeIcon icon={faPlus} />
+              )
+            }
             sx={{ mt: 2 }}
           >
-            Adicionar Nota
+            {loadingNota ? "Salvando..." : "Adicionar Nota"}
           </Button>
         </Card>
       </Box>
