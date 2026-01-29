@@ -25,6 +25,7 @@
   flex-direction: row;
   gap: 16px;
   margin-bottom: 24px;
+  margin-top: 12px;
 }
 
 .dashboard_cardSla {
@@ -117,4 +118,18 @@
   font-size: 2rem;
   font-weight: 600;
   color: #1f2937;
+}
+
+.dashboard_presentation_button {
+  display: flex;
+  gap: 10px;
+  padding: 10px 5px;
+  background-color: #fff;
+  color: rgba(0, 0, 0, 0.87);
+  -webkit-transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  border-radius: 10px;
+  box-shadow: var(--Paper-shadow);
+  background-image: var(--Paper-overlay);
+  overflow: hidden;
 }

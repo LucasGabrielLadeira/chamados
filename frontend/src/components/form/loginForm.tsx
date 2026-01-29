@@ -70,8 +70,8 @@ export default function LoginForm({
         localStorage.setItem("token", data.token);
         localStorage.setItem("name", data.nome);
         localStorage.setItem("centro_custo", data.centroDeCusto);
-        localStorage.setItem("matricula", data.matricula);
-        localStorage.setItem("nivel_acesso", data.nivel_acesso);
+        localStorage.setItem("matricula", credentials.matricula);
+        localStorage.setItem("nivel_acesso", data.chamado);
         window.location.href = "../Chamados/Dashboard";
       } else {
         console.error("Erro no login:", data.message || data);

@@ -20,8 +20,8 @@ import { Box, CircularProgress, Typography, Card } from "@mui/material";
 import styles from "./Dashboard.module.css";
 import {
   faHourglass,
-  faExpand,
-  faCompress,
+  faDownLeftAndUpRightToCenter,
+  faUpRightAndDownLeftFromCenter
 } from "@fortawesome/free-solid-svg-icons";
 import { usePresentation } from "../../../context/PresentationContext";
 
@@ -61,7 +61,7 @@ export default function Dashboard() {
           onClick={presentationMode ? exitPresentation : enterPresentation}
           className={styles["dashboard_presentation_button"]}
         >
-          <FontAwesomeIcon icon={presentationMode ? faCompress : faExpand} />
+          <FontAwesomeIcon icon={presentationMode ? faDownLeftAndUpRightToCenter : faUpRightAndDownLeftFromCenter} />
           {presentationMode ? "Sair da apresentação" : "Modo apresentação"}
         </button>
       </Box>

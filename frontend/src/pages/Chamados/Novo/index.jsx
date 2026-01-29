@@ -9,11 +9,13 @@ import {
   Select,
   Button,
   MenuItem,
+  Divider,
+  Grid,
 } from "@mui/material";
 import CustomSnackbar from "../../../components/SnackBar/SnackBar";
 import FileUploadBox from "../../../components/FileUploadBox/FileUploadBox";
 import styles from "./NovoChamado.module.css";
-import { use, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../Auth/axios";
 export default function NovoChamado() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -25,6 +27,45 @@ export default function NovoChamado() {
   const [tituloError, setTituloError] = useState(false);
   const [descricaoError, setDescricaoError] = useState(false);
   const [tipoProblemaError, setTipoProblemaError] = useState(false);
+  const [email, setEmail] = useState(localStorage.getItem("email") || "");
+  const [telefone, setTelefone] = useState(
+    localStorage.getItem("telefone") || ""
+  );
+  const [listaCategoria, setListaCategoria] = useState([]);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await api.get(
+        `${import.meta.env.VITE_API_URL}/chamados/usuarios/telefoneemail`
+      );
+      const userData = response.data;
+      setEmail(userData.email || "");
+      setTelefone(userData.telefone || "");
+    } catch (error) {
+      console.error("Erro ao buscar dados do usuário:", error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchDados = async () => {
+      try {
+        const [categoriasRes] = await Promise.all([
+          api.get(`${import.meta.env.VITE_API_URL}/chamados/categorias`),
+        ]);
+
+        setListaCategoria(categoriasRes.data);
+      } catch (error) {
+        console.error("Erro ao buscar dados do chamado:", error);
+      }
+    };
+
+    fetchDados();
+    fetchUserData();
+  }, []);
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,6 +103,8 @@ export default function NovoChamado() {
     formData.append("descricao", descricao);
     formData.append("tipo_problema", tipoProblema);
     formData.append("usuario_matricula", matricula);
+    formData.append("email", localStorage.getItem("email") || "");
+    formData.append("telefone", localStorage.getItem("telefone") || "");
     if (arquivo) formData.append("arquivo", arquivo);
 
     try {
@@ -75,7 +118,7 @@ export default function NovoChamado() {
       setSnackbarOpen(true);
       const id = response.data.id;
       // Redirecionar após sucesso
-      window.location.href = `/Chamados/DetalhesChamados/${id}`;
+      window.location.href = `/Chamados/Detalhes/${id}`;
     } catch (error) {
       console.error("Erro ao criar o chamado:", error);
       setSnackbarMessage(
@@ -101,6 +144,83 @@ export default function NovoChamado() {
           onSubmit={handleSubmit}
           className={styles["novo-chamado__form"]}
         >
+          <Box>
+            <Typography
+              variant="subtitle1"
+              fontWeight={600}
+              color="text.secondary"
+              gutterBottom
+            >
+              Informações do Usuário
+            </Typography>
+            <Divider />
+          </Box>
+
+          <Grid container spacing={2} marginTop={1}>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <FormControl fullWidth disabled>
+                <FormLabel>Matrícula</FormLabel>
+                <TextField
+                  value={localStorage.getItem("matricula") || ""}
+                  fullWidth
+                  variant="outlined"
+                />
+              </FormControl>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 8 }}>
+              <FormControl fullWidth disabled>
+                <FormLabel>Nome</FormLabel>
+                <TextField
+                  value={localStorage.getItem("name") || ""}
+                  fullWidth
+                  variant="outlined"
+                />
+              </FormControl>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <FormControl fullWidth>
+                <FormLabel>Email</FormLabel>
+                <TextField
+                  value={email || ""}
+                  onChange={(e) => setEmail(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                />
+              </FormControl>
+            </Grid>
+
+            <Grid size={{ xs: 12, md: 6 }}>
+              <FormControl fullWidth>
+                <FormLabel>Telefone</FormLabel>
+                <TextField
+                  onChange={(e) => setTelefone(e.target.value)}
+                  value={telefone || ""}
+                  fullWidth
+                  variant="outlined"
+                />
+              </FormControl>
+            </Grid>
+          </Grid>
+        </Box>
+
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          className={styles["novo-chamado__form"]}
+        >
+          <Box>
+            <Typography
+              variant="subtitle1"
+              fontWeight={600}
+              color="text.secondary"
+              gutterBottom
+            >
+              Detalhes do Chamado
+            </Typography>
+            <Divider />
+          </Box>
           {/* Título */}
           <FormControl fullWidth margin="normal" error={tituloError}>
             <FormLabel>Título</FormLabel>
@@ -137,14 +257,14 @@ export default function NovoChamado() {
               value={tipoProblema}
               onChange={(e) => setTipoProblema(e.target.value)}
               displayEmpty
-              autoFocus={tipoProblemaError}
             >
               <MenuItem value="">Selecione</MenuItem>
-              <MenuItem value="Hardware">Hardware</MenuItem>
-              <MenuItem value="Software">Software</MenuItem>
-              <MenuItem value="Redes">Redes</MenuItem>
-              <MenuItem value="Impressora">Impressora</MenuItem>
-              <MenuItem value="Sistema">Sistema</MenuItem>
+
+              {listaCategoria.map((cat) => (
+                <MenuItem key={cat.id} value={cat.id}>
+                  {cat.descricao}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
 

@@ -13,7 +13,9 @@ type NavOptionProps = {
   submenus?: Array<{
     Title: string;
     Route: string;
+    Access_Level?: number;
   }>;
+  access_level?: number;
 };
 export default function NavOption({
   icon,
@@ -21,20 +23,26 @@ export default function NavOption({
   menuToggled,
   route,
   submenus,
+  access_level
 }: NavOptionProps) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
   const textRef = useRef<HTMLParagraphElement>(null);
   const [isTruncated, setIsTruncated] = useState(false);
-
+  const nivel_acesso = parseInt(localStorage.getItem("access_level") || "0");
   useEffect(() => {
     if (textRef.current) {
       setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth);
     }
   }, [text]);
 
+  if (access_level && nivel_acesso < access_level) {
+    return null;
+  }
+
   return (
+
     <div
       className="menu-option-container"
       onMouseEnter={() => {
@@ -61,9 +69,8 @@ export default function NavOption({
       </div>
       {submenus && open && (
         <Paper
-          className={`${
-            menuToggled ? "submenu-container-toggled" : "submenu-container "
-          }`}
+          className={`${menuToggled ? "submenu-container-toggled" : "submenu-container "
+            }`}
           elevation={3}
         >
           {menuToggled && (
@@ -75,16 +82,18 @@ export default function NavOption({
             </>
           )}
           {submenus.map((submenu, index) => (
-            <div
-              key={index}
-              className="submenu-item"
-              onClick={() => {
-                navigate(submenu.Route);
-                setOpen(false);
-              }}
-            >
-              {submenu.Title}
-            </div>
+            submenu.Access_Level && nivel_acesso < submenu.Access_Level ? null : (
+              <div
+                key={index}
+                className="submenu-item"
+                onClick={() => {
+                  navigate(submenu.Route);
+                  setOpen(false);
+                }}
+              >
+                {submenu.Title}
+              </div>
+            )
           ))}
         </Paper>
       )}

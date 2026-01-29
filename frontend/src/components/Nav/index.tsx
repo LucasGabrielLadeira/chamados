@@ -50,6 +50,7 @@ export default function Nav({ menuToggled, className = "" }: NavProps) {
       Title: "Dashboard",
       Icon: faGauge,
       Route: "./Chamados/Dashboard",
+      access_level: 1
     },
     {
       Title: "Chamados",
@@ -61,11 +62,19 @@ export default function Nav({ menuToggled, className = "" }: NavProps) {
       Icon: faGear,
       submenus: [
         {
-          Title: "Status",
-          Route: "./Chamados/Configuracoes/Status",
+          Title: "Categorias",
+          Route: "./Chamados/Configuracoes/Categorias"
         },
-        { Title: "Usuários do Suporte", Route: "./Chamados/Configuracoes/Usuarios" }
+        {
+          Title: "Prioridades",
+          Route: "./Chamados/Configuracoes/Prioridades"
+        },
+        {
+          Title: "Tecnicos",
+          Route: "./Chamados/Configuracoes/Tecnicos"
+        }
       ],
+      access_level: 1,
     },
   ];
 
@@ -95,6 +104,7 @@ export default function Nav({ menuToggled, className = "" }: NavProps) {
             menuToggled={menuToggled}
             icon={rota.Icon}
             text={rota.Title}
+            access_level={rota.access_level ?? 0}
             {...(rota.Route ? { route: rota.Route } : {})}
             {...(rota.submenus ? { submenus: rota.submenus } : {})}
           />
